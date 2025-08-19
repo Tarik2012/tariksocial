@@ -1,0 +1,1 @@
+docker compose up : eso para arrancar el proyecto 
