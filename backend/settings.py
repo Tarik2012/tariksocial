@@ -125,9 +125,16 @@ CORS_ALLOW_CREDENTIALS = True
 
 # 🔑 JWT
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("ACCESS_TOKEN_MINUTES", 20))),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("REFRESH_TOKEN_DAYS", 7))),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "AUTH_HEADER_TYPES": ("Bearer",),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),  # un poco más largo
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),    # igual
+    "ROTATE_REFRESH_TOKENS": True,                  # mantenerlo
+    "BLACKLIST_AFTER_ROTATION": True,               # mantenerlo
+    "UPDATE_LAST_LOGIN": True,                      # opcional: para log
 }
+
+
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+

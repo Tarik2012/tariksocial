@@ -7,7 +7,10 @@ const axiosInstance = axios.create({
   },
 });
 
-// 👉 Interceptor para agregar el token a cada request
+// 👉 Variable global para guardar la promesa de refresh en curso
+let refreshPromise = null;
+
+// 👉 Interceptor para agregar token a cada request
 axiosInstance.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -19,7 +22,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 👉 Interceptor para manejar refresh token si el accessToken ha expirado
+// 👉 Interceptor para manejar expiración y refresh de tokens
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -32,28 +35,34 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      try {
-        const res = await axios.post(
+      // 🚦 Si ya hay un refresh en curso → esperar a que termine
+      if (!refreshPromise) {
+        refreshPromise = axios.post(
           "http://127.0.0.1:8000/api/token/refresh/",
           {
             refresh: localStorage.getItem("refreshToken"),
           }
         );
+      }
+
+      try {
+        const res = await refreshPromise;
+        refreshPromise = null; // 🔄 reset para la siguiente vez
 
         const newAccessToken = res.data.access;
         const newRefreshToken = res.data.refresh;
 
+        // ✅ Guardar nuevos tokens
         localStorage.setItem("accessToken", newAccessToken);
-
-        // ✅ Si hay nuevo refresh, guárdalo también
         if (newRefreshToken) {
           localStorage.setItem("refreshToken", newRefreshToken);
         }
 
-        // 🔁 Reintenta la petición original con el nuevo token
+        // 🔁 Reintentar la petición original
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        refreshPromise = null; // limpiar promesa fallida
         console.error("🔴 Refresh token inválido o expirado:", refreshError);
 
         // 🔐 Logout automático

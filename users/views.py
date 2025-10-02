@@ -1,4 +1,4 @@
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView,RetrieveUpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,13 +15,15 @@ class RegisterAPIView(CreateAPIView):
     serializer_class = UserSerializer
 
 
-class UserMeView(APIView):
+class UserMeView(RetrieveUpdateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
 
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+    # En vez de un queryset normal, devolvemos siempre el usuario autenticado
+    def get_object(self):
+        return self.request.user
+
 
 
 class LogoutView(APIView):

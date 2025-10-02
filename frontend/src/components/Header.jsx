@@ -35,6 +35,14 @@ function Header() {
                   </Link>
                 </li>
                 <li>
+                  <Link
+                    to="/profile/edit"
+                    className="hover:text-blue-600 transition-colors"
+                  >
+                    Editar Perfil
+                  </Link>
+                </li>
+                <li>
                   <button
                     onClick={handleLogout}
                     className="text-red-600 hover:underline"

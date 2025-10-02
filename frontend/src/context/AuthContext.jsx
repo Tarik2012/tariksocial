@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState, useContext } from "react";
 import axios from "axios";
 import axiosInstance from "../api/axiosInstance";
 
@@ -36,6 +36,24 @@ export const AuthProvider = ({ children }) => {
       await fetchUser();
     } catch (err) {
       console.error("❌ Error en login:", err);
+      throw err;
+    }
+  };
+
+  // ✨ Nueva función para actualizar perfil
+  const updateUser = async (formData) => {
+    try {
+      const res = await axiosInstance.patch("/users/me/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // necesario para avatar
+        },
+      });
+
+      setUser(res.data); // ✅ refresca el usuario en contexto
+      console.log("✅ Perfil actualizado:", res.data);
+      return res.data;
+    } catch (err) {
+      console.error("❌ Error al actualizar perfil:", err);
       throw err;
     }
   };
@@ -77,9 +95,15 @@ export const AuthProvider = ({ children }) => {
         user,
         login,
         logout,
+        updateUser, // 👈 ahora disponible en toda la app
       }}
     >
       {children}
     </AuthContext.Provider>
   );
+};
+
+// 👇 Custom hook para consumir el contexto sin repetir código
+export const useAuth = () => {
+  return useContext(AuthContext);
 };
